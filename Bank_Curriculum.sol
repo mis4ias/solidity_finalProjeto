@@ -89,49 +89,62 @@ contract CurriculumDapp {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-// Função para buscar experiências com base em critérios específicos
-function searchExperiences(address verifyingAuthority) external view returns (address[] memory, string[] memory, string[] memory, bool[] memory, address[] memory) {
-    // Inicializa arrays para armazenar os resultados
-    address[] memory users;
-    string[] memory titles;
-    string[] memory descriptions;
-    bool[] memory verifiedStatus;
-    address[] memory verifyingAuthorities;
+    // Função para buscar experiências com base em critérios específicos
+    function searchExperiences(address verifyingAuthority) external view returns (address[] memory, string[] memory, string[] memory, bool[] memory, address[] memory) {
+        // Inicializa arrays para armazenar os resultados
+        address[] memory users;
+        string[] memory titles;
+        string[] memory descriptions;
+        bool[] memory verifiedStatus;
+        address[] memory verifyingAuthorities;
 
-    // Conta o número de experiências que atendem aos critérios
-    uint256 count = 0;
-    for (uint256 i = 0; i < resumes[msg.sender].length; i++) {
-        Experience memory exp = resumes[msg.sender][i];
-        bool matchesCriteria = (verifyingAuthority == address(0) || exp.verifyingAuthority == verifyingAuthority);
+        // Preenche os arrays com os resultados
+        uint256 index = 0;
+        for (uint256 i = 0; i < resumes[msg.sender].length; i++) {
+            Experience memory exp = resumes[msg.sender][i];
 
-        if (matchesCriteria) {
-            count++;
+            // Verifica se a entidade verificadora é a desejada ou se é para buscar todas as experiências
+            if (verifyingAuthority == address(0) || exp.verifyingAuthority == verifyingAuthority) {
+                users = appendToArray(users, msg.sender);
+                titles = appendToArray(titles, exp.title);
+                descriptions = appendToArray(descriptions, exp.description);
+                verifiedStatus = appendToArray(verifiedStatus, exp.verified);
+                verifyingAuthorities = appendToArray(verifyingAuthorities, exp.verifyingAuthority);
+                index++;
+            }
         }
+
+        return (users, titles, descriptions, verifiedStatus, verifyingAuthorities);
     }
 
-    // Aloca espaço nos arrays de resultados
-    users = new address[](count);
-    titles = new string[](count);
-    descriptions = new string[](count);
-    verifiedStatus = new bool[](count);
-    verifyingAuthorities = new address[](count);
-
-    // Preenche os arrays com os resultados
-    uint256 index = 0;
-    for (uint256 i = 0; i < resumes[msg.sender].length; i++) {
-        Experience memory exp = resumes[msg.sender][i];
-        bool matchesCriteria = (verifyingAuthority == address(0) || exp.verifyingAuthority == verifyingAuthority);
-
-        if (matchesCriteria) {
-            users[index] = msg.sender;
-            titles[index] = exp.title;
-            descriptions[index] = exp.description;
-            verifiedStatus[index] = exp.verified;
-            verifyingAuthorities[index] = exp.verifyingAuthority;
-            index++;
+    // Função auxiliar para adicionar elementos a um array dinâmico
+    function appendToArray(address[] memory array, address element) internal pure returns (address[] memory) {
+        address[] memory newArray = new address[](array.length + 1);
+        for (uint256 i = 0; i < array.length; i++) {
+            newArray[i] = array[i];
         }
+        newArray[array.length] = element;
+        return newArray;
     }
 
-    return (users, titles, descriptions, verifiedStatus, verifyingAuthorities);
+    // Função auxiliar para adicionar elementos a um array dinâmico
+    function appendToArray(string[] memory array, string memory element) internal pure returns (string[] memory) {
+        string[] memory newArray = new string[](array.length + 1);
+        for (uint256 i = 0; i < array.length; i++) {
+            newArray[i] = array[i];
+        }
+        newArray[array.length] = element;
+        return newArray;
     }
+
+    // Função auxiliar para adicionar elementos a um array dinâmico
+    function appendToArray(bool[] memory array, bool element) internal pure returns (bool[] memory) {
+        bool[] memory newArray = new bool[](array.length + 1);
+        for (uint256 i = 0; i < array.length; i++) {
+            newArray[i] = array[i];
+        }
+        newArray[array.length] = element;
+        return newArray;
+    }
+
 }
